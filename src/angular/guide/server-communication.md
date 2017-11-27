@@ -1,7 +1,7 @@
 ---
 layout: angular
 title: HTTP Client
-description: Use an HTTP Client to talk to a remote server.
+description: An HTTP Client interacts with the remote server.
 sideNavGroup: advanced
 prevpage:
   title: Hierarchical Dependency Injectors
@@ -20,23 +20,28 @@ nextpage:
   it isn't covered in this page.
 </div>
 
-Modern browsers support two HTTP-based APIs:
-[XMLHttpRequest (XHR)](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) and
-[JSONP](https://en.wikipedia.org/wiki/JSONP). A few browsers also support
-[Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+Modern browsers support the following HTTP-based APIs:
+
+* [XMLHttpRequest (XHR)](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) 
+
+
+* [JSONP](https://en.wikipedia.org/wiki/JSONP)
+
+
+Additionally, other browsers support [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
 The Dart [http][] library simplifies app programming with the **XHR** and **JSONP** APIs.
 
-A <live-example>live example</live-example> illustrates these topics.
+The <live-example>live example</live-example> exemplifies the usage of the **XHR** and **JSONP** APIs .
 
 ## Demos
 
-This page describes server communication with the help of the following demos:
+The following demos explain server communication. 
 
 - [The Tour of Heroes *HTTP* client demo](#http-client).
 - [Cross-Origin Requests: Wikipedia example](#cors).
 
-The root `AppComponent` orchestrates these demos:
+The following code shows how to use the root `AppComponent`:
 
 <?code-excerpt "lib/app_component.dart" title?>
 ```
@@ -64,18 +69,18 @@ The root `AppComponent` orchestrates these demos:
 <div class="l-main-section"></div>
 # Providing HTTP services  {#http-providers}
 
-First, configure the app to use server communication facilities.
+The Dart `BrowserClient` client communicates with the server through an HTTP request/response protocol.
+The `BrowserClient` client is a group of services in the Dart [http][] library.
 
-The Dart `BrowserClient` client communicates with the server using a familiar HTTP request/response protocol.
-The `BrowserClient` client is one of a family of services in the Dart [http][] library.
-
-Before you can use the `BrowserClient` client, you need to register it as a service provider with the dependency injection system.
+To provide HTTP services, follow these steps:
+1. Configure the app to use server communication facilities.
+2. Register the `BrowserClient` client as a service provider with the dependency injection system. 
 
 <div class="l-sub-section" markdown="1">
-  Read about providers in the [Dependency Injection](dependency-injection.html) page.
+For more information about providers, see the [Dependency Injection](dependency-injection.html) page.
 </div>
 
-Register providers using the `bootstrap()` method:
+The followin code shows how to use the `bootstrap()` method:
 
 <?code-excerpt "web/main.dart (v1)" title?>
 ```
@@ -92,15 +97,12 @@ Register providers using the `bootstrap()` method:
 <div id="http-client"></div>
 ## The Tour of Heroes HTTP client demo
 
-The first demo is a mini-version of the [tutorial](/angular/tutorial)'s "Tour of Heroes" (ToH) app.
-This version gets some heroes from the server, displays them in a list, lets the user add new heroes, and saves them to the server.
-The app uses the Dart `BrowserClient` client to communicate via **XMLHttpRequest (XHR)**.
-
-It works like this:
+This demo is a shorter version of the [Tour of Heroes](/angular/tutorial) app. In this demo, the heroes are received from the server and displayed as a list. A user can add new heroes and save them to the server. The app uses the Dart `BrowserClient` client to communicate via **XMLHttpRequest (XHR)** .
+The following image displays the process of adding and saving heroess:
 
 <img class="image-display" src="{% asset_path 'ng/devguide/server-communication/http-toh.gif' %}" alt="ToH mini app" width="282">
 
-This demo has a single component, the `HeroListComponent`.  Here's its template:
+The following code is the `HeroListComponent` component used in the demo:
 
 <?code-excerpt "lib/src/toh/hero_list_component.html" title?>
 ```
@@ -116,21 +118,16 @@ This demo has a single component, the `HeroListComponent`.  Here's its template:
   <p class="error" *ngIf="errorMessage != null">{!{errorMessage}!}</p>
 ```
 
-It presents the list of heroes with an `ngFor`.
-Below the list is an input box and an *Add Hero* button where you can enter the names of new heroes
-and add them to the database.
-A [template reference variable](template-syntax.html#ref-vars), `newHeroName`, accesses the
-value of the input box in the `(click)` event binding.
-When the user clicks the button, that value is passed to the component's `addHero` method and then
-the event binding clears it to make it ready for a new hero name.
+In the code, the list of heroes is specified as `ngFor`. A user can enter the names of new heroes in the input box and add them to the database by clicking the *Add Hero* button.
 
-Below the button is an area for an error message.
+A [template reference variable](template-syntax.html#ref-vars), `newHeroName`, accesses the value of the input box in the `(click)` event binding. When the user clicks the button, that value is passed to `addHero` method of the component and then,
+the event binding clears the method to accept the name of a new hero. If an error occurs, it is displayed below the *Add Hero* button.
 
 <div id="oninit"></div>
 <div id="HeroListComponent"></div>
 ### The *HeroListComponent* class
 
-Here's the component class:
+The following code is *HeroListComponent* class:
 
 <?code-excerpt "lib/src/toh/hero_list_component.dart (class)" region="component" title?>
 ```
@@ -163,43 +160,36 @@ Here's the component class:
   }
 ```
 
-Angular [injects](dependency-injection) a `HeroService` into the constructor
-and the component calls that service to fetch and save data.
+Angular injects `HeroService` into the constructor and the `HeroList` component calls the service to fetch and save data. For more information about injection, see the [injects](dependency-injection) page.
 
-The component **does not talk directly to the Dart `BrowserClient` client**.
-The component doesn't know or care how it gets the data.
-It delegates to the `HeroService`.
-
-This is a golden rule: **always delegate data access to a supporting service class**.
-
-Although _at runtime_ the component requests heroes immediately after creation,
-you **don't** call the service's `get` method in the component's constructor.
-Instead, call it inside the `ngOnInit` [lifecycle hook](lifecycle-hooks)
-and rely on Angular to call `ngOnInit` when it instantiates this component.
+The component does not interact directly with the Dart `BrowserClient` client. It only delegates the data to the `HeroService`.
 
 <div class="l-sub-section" markdown="1">
-  This is a *best practice*.
-  Components are easier to test and debug when their constructors are simple, and all real work
-  (especially calling a remote server) is handled in a separate method.
+Note **Always delegate data access to a supporting service class**.
 </div>
 
-The hero service `getHeroes()` and `create()` asynchronous methods return the [Future][]
-values of the current hero list and the newly added hero,
-respectively. The hero list component `getHeroes()` and `addHero()` methods specify
-the actions to be taken when the asynchronous method calls succeed or fail.
+Although _at runtime_ the component requests heroes as soon as they are created, the `get` method of the service in the component's constructor is not called immediately. It is called inside the`ngOnInit` life cycle hook and relies on the Angular to call `ngOnInit` when it instantiates this component. For more information, see the [lifecycle hook](lifecycle-hooks) page.
 
-For more information about `Future`s, consult any one
-of the [articles]({{site.dartlang}}/articles) on asynchronous
-programming in Dart, or the tutorial on
-[_Asynchronous Programming: Futures_]({{site.dartlang}}/tutorials/language/futures).
+<div class="l-sub-section" markdown="1">
+  Note
+  Components are easier to test and debug when their constructors are simple and tasks such as calling a remote server are handled through a separate method.
+  </div>
 
-With a basic understanding of the component, you're ready to look inside the `HeroService`.
+The hero service `getHeroes()` return the [Future][]
+values of the current hero list and the `create()` asynchronous method returns the newly added hero.
+The `getHeroes()` and `addHero()` methods in the hero list specify the actions taken when the asynchronous method calls succeed or fail.
+
+For more information about `Future`, see the articles listed on the [articles]({{site.dartlang}}/articles) page about asynchronous
+programming. Additionally, you can see the tutorial on,
+ [_Asynchronous Programming: Futures_]({{site.dartlang}}/tutorials/language/futures).
+
+With a basic understanding of the component you can understand `HeroService`.
 
 <div id="HeroService"></div>
 ## Fetch data with _http.get()_  {#fetch-data}
 
-In many of the previous samples the app faked the interaction with the server by
-returning mock heroes in a service like this one:
+In the abovementioned samples, the app created fake interaction with the server by
+returning mock heroes in a service as follows: 
 
 <?code-excerpt "../toh-4/lib/src/hero_service.dart"?>
 ```
@@ -216,7 +206,7 @@ returning mock heroes in a service like this one:
   }
 ```
 
-You can revise that `HeroService` to get the heroes from the server using the Dart `BrowserClient` client service:
+The following code is used to revise the  `HeroService` to get the heroes from the server using the Dart `BrowserClient` client service:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (revised)" region="v1" title?>
 ```
@@ -259,15 +249,14 @@ You can revise that `HeroService` to get the heroes from the server using the Da
     }
 ```
 
-Notice that the Dart `BrowserClient` client service is
-[injected](dependency-injection) into the `HeroService` constructor.
+The following code shows how the Dart `BrowserClient` client service is injected into the `HeroService` constructor:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (ctor)"?>
 ```
   HeroService(this._http);
 ```
 
-Look closely at how to call `_http.get`:
+The following code show how to call the `_http.get`service:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (getHeroes)" region="http-get" title?>
 ```
@@ -285,13 +274,11 @@ Look closely at how to call `_http.get`:
   }
 ```
 
-You pass the resource URL to `get` and it calls the server which returns heroes.
+The resource URL is passed to `get`, it calls the server which returns heroes.
 
 <div class="l-sub-section" markdown="1">
-  The server returns heroes once you've set up the
-  [in-memory web api](/angular/tutorial/toh-pt6#simulate-the-web-api)
-  described in the [tutorial](/angular/tutorial).
-  Alternatively, you can temporarily target a JSON file by changing the endpoint URL:
+  Set up the in-memory web api as described in the [tutorial](/angular/tutorial). After the setup, the server returns heroes.
+  Alternatively, you can target a JSON file by changing the endpoint URL as follows:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (endpoint-json)"?>
 ```
@@ -302,53 +289,43 @@ You pass the resource URL to `get` and it calls the server which returns heroes.
 <div id="extract-data"></div>
 ## Process the response object
 
-Remember that the `getHeroes()` method used an `_extractData()` helper method to map the `_http.get` response object to heroes:
+As explained earlier, the `getHeroes()` method uses an `_extractData()` helper method to map the `_http.get` response object to heroes as follows:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (excerpt)" region="extract-data" title?>
 ```
   dynamic _extractData(Response resp) => JSON.decode(resp.body)['data'];
 ```
 
-The `response` object doesn't hold the data in a form the app can use directly.
-You must parse the response data into a JSON object.
+The `response` object does not hold the data in a format that can be used directly through the app. The response data is parsed into a JSON object.
 
 ### Parse to JSON
 
-The response data are in JSON string form.
-You must parse that string into objects, which you do by calling
-the `JSON.decode()` method from the `dart:convert` library.
+The response data are in JSON string form. The user must parse the string into objects, by calling the `JSON.decode()` method from the `dart:convert` library as follows:
 
 <div class="l-sub-section" markdown="1">
-  Don't expect the decoded JSON to be the heroes list directly.
-  This server always wraps JSON results in an object with a `data`
-  property. You have to unwrap it to get the heroes.
-  This is conventional web API behavior, driven by
-  [security concerns](https://www.owasp.org/index.php/OWASP_AJAX_Security_Guidelines#Always_return_JSON_with_an_Object_on_the_outside).
+  The decoded JSON does not list the heroes. The server wraps JSON results in an object with a `data`
+  property. The object must be unwrapped to get the heroes. 
+  This web API behavior is driven by security concerns listed on the 
+  [security concerns](https://www.owasp.org/index.php/OWASP_AJAX_Security_Guidelines#Always_return_JSON_with_an_Object_on_the_outside) page.
 </div>
 
 <div class="alert is-important" markdown="1">
-   Make no assumptions about the server API.
-   Not all servers return an object with a `data` property.
+      Not all servers return an object with a `data` property.
 </div>
 
 <div id="no-return-response-object"></div>
 ### Do not return the response object
 
-The `getHeroes()` method _could_ have returned the HTTP response but this wouldn't
-follow best practices.
-The point of a data service is to hide the server interaction details from consumers.
-The component that calls the `HeroService` only wants heroes and is kept separate
-from getting them, the code dealing with where they come from, and the response object.
+The `getHeroes()` method may erroneously return HTTP response.
+The data service hides the server interaction details from the user.
+The component that calls the `HeroService` requires only heroes. 
 
 <div id="error-handling"></div>
 ### Always handle errors
 
-An important part of dealing with I/O is anticipating errors by preparing to catch them
-and do something with them. One way to handle errors is to pass an error message
-back to the component for presentation to the user,
-but only if it says something that the user can understand and act upon.
+An important aspect of working with input and output is finding and resolving errors. One method to handle errors is by sending a message with decription of the error and solution to the user.
 
-This simple app conveys that idea, albeit imperfectly, in the way it handles a `getHeroes` error.
+This app does not generate appropriate error messages for `getHeroes` as shown below:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (excerpt)" region="error-handling" title?>
 ```
@@ -371,17 +348,16 @@ This simple app conveys that idea, albeit imperfectly, in the way it handles a `
 ```
 {%comment%} block error-handling - TODO: describe `_handleError`?
   The `catch()` operator passes the error object from `http` to the `handleError()` method.
-  The `handleError` method transforms the error into a developer-friendly message,
-  logs it to the console, and returns the message in a new, failed Observable via `Observable.throw`.
+  The `handleError` method transforms the error into a user-friendly message,
+  logs it to the console, and returns the message as a new, failed Observable via `Observable.throw`.
 {%endcomment%}
 
 <div id="subscribe"></div>
 ### _HeroListComponent_ error handling  {#hero-list-component}
 
-Back in the `HeroListComponent`, you wrapped the call to
-`_heroService.getHeroes()` in a `try` clause. When an exception is
-caught, the `errorMessage` variable &mdash; which you've bound conditionally in the
-template &mdash; gets assigned to.
+In the `HeroListComponent`, the call to
+`_heroService.getHeroes()` is wrapped in a `try` clause. When an error is
+generated, the `errorMessage` variable is assigned the error as follows: 
 
 <?code-excerpt "lib/src/toh/hero_list_component.dart (getHeroes)" title?>
 ```
@@ -395,42 +371,41 @@ template &mdash; gets assigned to.
 ```
 
 <div class="l-sub-section" markdown="1">
-  Want to see it fail? In the `HeroService`, reset the api endpoint to a bad value. Afterward, remember to restore it.
+  To create a failure scenario, reset the api endpoint to a bad value in `HeroService`. Ensure that the api endpoint is restored to its original value. 
 
 </div>
 
 <div id="create"></div><div id="update"></div>
 ## Send data to the server  {#post}
 
-So far you've seen how to retrieve data from a remote location using an HTTP service.
-Now you'll add the ability to create new heroes and save them in the backend.
+This page describes the functionality to create new heroes and save them in the code.
 
-You'll write a method for the `HeroListComponent` to call, a `create()` method, that takes
-just the name of a new hero. It begins like this:
+Create a method for the `HeroListComponent` to call a `create()` method. This method takes
+the name of a new hero.The following code sample explains this scenario:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (create-sig)"?>
 ```
   Future<Hero> create(String name) async {
 ```
 
-To implement it, you must know the server's API for creating heroes.
+To implement this scenario, the user must know the  server's API for creating heroes.
 [This sample's data server](/angular/tutorial/toh-pt6#simulate-the-web-api) follows typical REST guidelines.
-It expects a [`POST`](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) request
+A [`POST`](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5) request must be created
 at the same endpoint as `GET` heroes.
-It expects the new hero data to arrive in the body of the request,
+The new hero data should arrive in the body of the request,
 structured like a `Hero` entity but without the `id` property.
-The body of the request should look like this:
+The following code sample shows the body of the request: 
 
 <?code-excerpt?>
 ```javascript
   { "name": "Windstorm" }
 ```
 
-The server generates the `id` and returns the entire `JSON` representation
-of the new hero including its generated id. The hero arrives tucked inside a response object
+The server generates the `id` and returns the `JSON` representation
+of the new hero including the generated id. The hero is inside a response object
 with its own `data` property.
 
-Now that you know how the API works, implement `create()` as follows:
+ `create()` is implemented as follows:
 
 <?code-excerpt "lib/src/toh/hero_service.dart (create)" title?>
 ```
@@ -451,12 +426,12 @@ In the `headers` object, the `Content-Type` specifies that the body represents J
 
 ### JSON results
 
-As with `getHeroes()`, use the `_extractData()` helper to [extract the data](#extract-data)
+Similar to `getHeroes()`, use the `_extractData()` helper to [extract the data](#extract-data)
 from the response.
 
-Back in the `HeroListComponent`, the `addHero()` method waits for the service's
-asynchronous `create()` method to create a hero. When `create()` is finished,
-`addHero()` puts the new hero in the `heroes` list for presentation to the user.
+As described earlier,  in the `HeroListComponent`, the `addHero()` method waits for the 
+asynchronous  service `create()` method to create a hero. When `create()` is finished,
+`addHero()` displays the new hero in the `heroes` list as follows.
 
 <?code-excerpt "lib/src/toh/hero_list_component.dart (addHero)" title?>
 ```
@@ -473,29 +448,30 @@ asynchronous `create()` method to create a hero. When `create()` is finished,
 
 ## Cross-Origin Requests: Wikipedia example  {#cors}
 
-You just learned how to make `XMLHttpRequests` using the Dart `BrowserClient` service.
-This is the most common approach to server communication, but it doesn't work in all scenarios.
+The most common approach to server communication is by making `XMLHttpRequests` using the Dart `BrowserClient` service.
+However, it does not work in all scenarios. 
 
 For security reasons, web browsers block `XHR` calls to a remote server whose origin is different from the origin of the web page.
 The *origin* is the combination of URI scheme, hostname, and port number.
 This is called the [same-origin policy](https://en.wikipedia.org/wiki/Same-origin_policy).
 
 <div class="l-sub-section" markdown="1">
-  Modern browsers do allow `XHR` requests to servers from a different origin if the server supports the
+  Modern browsers allow `XHR` requests to servers from a different origin if the server supports the
   [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) protocol.
-  If the server requires user credentials, enable them in the [request headers](#headers).
+  You can enable the user credentials in the [request headers](#headers).
 </div>
 
 Some servers do not support CORS but do support an older, read-only alternative called [JSONP](https://en.wikipedia.org/wiki/JSONP).
-Wikipedia is one such server.
+Wikipedia is an example of this server. 
 
 <div class="l-sub-section" markdown="1">
-  This [Stack Overflow answer](http://stackoverflow.com/questions/2067472/what-is-jsonp-all-about/2067584#2067584) covers many details of JSONP.
+  
+For more information about JSONP, see  [Stack Overflow answer](http://stackoverflow.com/questions/2067472/what-is-jsonp-all-about/2067584#2067584).
 </div>
 
 ### Search Wikipedia
 
-Here is a simple search that shows suggestions from Wikipedia as the user
+The following simple search shows suggestions from Wikipedia as the user
 types in a text box:
 
 <img class="image-display" src="{% asset_path 'ng/devguide/server-communication/wiki-1.gif' %}" alt="Wikipedia search app (v.1)" width="282">
@@ -504,10 +480,9 @@ Wikipedia offers a modern `CORS` API and a legacy `JSONP` search API.
 
 <div class="alert is-important" markdown="1">
   The remaining content of this section is coming soon.
-  In the meantime, consult the
+  For more information about how to access Wikipedia via the `JSON` API, see
   [example sources]({{site.ghNgEx}}/server-communication/tree/{{site.branch}})
-  to see how to access Wikipedia via its `JSONP` API.
-</div>
+  </div>
 
 {%comment%}
 ==============================================================================
@@ -515,11 +490,11 @@ Wikipedia offers a modern `CORS` API and a legacy `JSONP` search API.
 ==============================================================================
 
 //- block wikipedia-jsonp+ unused portion from TS
-Wikipedia offers a modern `CORS` API and a legacy `JSONP` search API. This example uses the latter.
-The Angular `Jsonp` service both extends the `BrowserClient` service for JSONP and restricts you to `GET` requests.
+Wikipedia offers a modern `CORS` API and a legacy `JSONP` search API. This example uses this API.
+The Angular `Jsonp` service extends the `BrowserClient` service for JSONP and also restricts the `GET` requests.
 All other HTTP methods throw an error because `JSONP` is a read-only facility.
 
-As always, wrap the interaction with an Angular data access client service inside a dedicated service, here called `WikipediaService`.
+Wrap the interaction with an Angular data access client service inside a dedicated service. For example, `WikipediaService`.
 
 <?xcode-excerpt "lib/src/wiki/wikipedia_service.dart" title linenums?>
 
@@ -532,33 +507,32 @@ in `app.module.ts`.
 The [Wikipedia "opensearch" API](https://www.mediawiki.org/wiki/API:Opensearch)
 expects four parameters (key/value pairs) to arrive in the request URL's query string.
 The keys are `search`, `action`, `format`, and `callback`.
-The value of the `search` key is the user-supplied search term to find in Wikipedia.
-The other three are the fixed values "opensearch", "json", and "JSONP_CALLBACK" respectively.
+The value of the `search` key is the user-supplied search term in Wikipedia.
+The other three are the fixed values "opensearch", "json", and "JSONP_CALLBACK", respectively.
 
 <div class="l-sub-section" markdown="1">
-    The `JSONP` technique requires that you pass a callback function name to the server in the query string: `callback=JSONP_CALLBACK`.
+    The `JSONP` technique requires you to pass a callback function name to the server in the query string: `callback=JSONP_CALLBACK`.
     The server uses that name to build a JavaScript wrapper function in its response, which Angular ultimately calls to extract the data.
-    All of this happens under the hood.
-</div>
+    </div>
 
-If you're looking for articles with the word "Angular", you could construct the query string by hand and call `jsonp` like this:
+To search for articles with the term, "Angular", construct the query string called `jsonp` as follows:
 
 <?xcode-excerpt "lib/src/wiki/wikipedia_service_1.dart (query-string)"?>
 
-In more parameterized examples you could build the query string with the Angular `URLSearchParams` helper:
+In more parameterized example, build the query string with the Angular `URLSearchParams` helper:
 
 <?xcode-excerpt "lib/src/wiki/wikipedia_service.dart (search parameters)" region="search-parameters" title?>
 
-This time you call `jsonp` with *two* arguments: the `wikiUrl` and an options object whose `search` property is the `params` object.
+Call `jsonp` with *two* arguments: the `wikiUrl` and an options object whose `search` property is the `params` object.
 
 <?xcode-excerpt "lib/src/wiki/wikipedia_service.dart (call jsonp)" region="call-jsonp" title?>
 
-`Jsonp` flattens the `params` object into the same query string you saw earlier, sending the request to the server.
+`Jsonp` flattens the `params` object into the same query string and sends the request to the server.
 
 ### The WikiComponent  {#wikicomponent}
 
-Now that you have a service that can query the Wikipedia API,
-turn your attention to the component (template and class) that takes user input and displays search results.
+The abovementiond service can query the Wikipedia API.
+The component (template and class) takes user input and displays search results.
 
 <?xcode-excerpt "lib/src/wiki/wiki_component.dart" title linenums?>
 
@@ -569,56 +543,51 @@ The component's `search(term)` method delegates to the `WikipediaService`, which
 Observable list of string results (`Observable<string[]>`).
 Instead of subscribing to the Observable inside the component, as in the `HeroListComponent`,
 the app forwards the Observable result to the template (via `items`) where the `async` pipe
-in the `ngFor` handles the subscription. Read more about [async pipes](pipes.html#async-pipe)
-in the [Pipes](pipes.html) page.
+in the `ngFor` handles the subscription. For more information, see [async pipes](pipes.html#async-pipe)
+on the [Pipes](pipes.html) page.
 
 <div class="l-sub-section" markdown="1">
-  The [async pipe](pipes.html#async-pipe) is a good choice in read-only components
-  where the component has no need to interact with the data.
+  The [async pipe](pipes.html#async-pipe) has read-only components, which do not interact with the data.
 
   `HeroListComponent` can't use the pipe because `addHero()` pushes newly created heroes into the list.
 </div>
 
 ## A wasteful app  {#wasteful-app}
 
-The Wikipedia search makes too many calls to the server.
-It is inefficient and potentially expensive on mobile devices with limited data plans.
+The Wikipedia search makes multiple calls to the server.This method is inefficient and potentially expensive on mobile devices with limited data plans.
 
 ### 1. Wait for the user to stop typing
 
-Presently, the code calls the server after every keystroke.
-It should only make requests when the user *stops typing*.
-Here's how it will work after refactoring:
+The code calls the server after every keystroke.
+and sends a request to the server after the user stops typing.
+The following sample code shows how the refactoring affects the code: 
 
 <img class="image-display" src="{% asset_path 'ng/devguide/server-communication/wiki-2.gif' %}" alt="Wikipedia search app (v.2)" width="250">
 
 ### 2. Search when the search term changes
 
-Suppose a user enters the word *angular* in the search box and pauses for a while.
-The app issues a search request for *angular*.
+IF a user enters the word *angular* in the search box and pauses for a while, the app issues a search request for *angular*.
 
-Then the user backspaces over the last three letters, *lar*, and immediately re-types *lar* before pausing once more.
-The search term is still _angular_. The app shouldn't make another request.
+If the user deletes the last three letters, *lar*, and re-types *lar* before pausing again.
+The search term is still _angular_. Therore, the app should not make another request. 
 
 ### 3. Cope with out-of-order responses
 
 The user enters *angular*, pauses, clears the search box, and enters *http*.
-The app issues two search requests, one for *angular* and one for *http*.
+The app issues two search requests, one for *angular* and the other for *http*.
 
-Which response arrives first? It's unpredictable.
-When there are multiple requests in-flight, the app should present the responses
-in the original request order.
-In this example, the app must always display the results for the *http* search
-no matter which response arrives first.
+The user does not know which response was recorded first. When there are multiple requests in-flight, the app presents the responses in the original request order.
+In this example, the app displays the results for the *http* search
+irrespective of the order of the response. 
 
 <div id="more-observables"></div>
 ## More fun with Observables
 
-You could make changes to the `WikipediaService`, but for a better
-user experience, create a copy of the `WikiComponent` instead and make it smarter,
-with the help of some nifty Observable operators.
+A user can make changes to the `WikipediaService` service. However, for a better
+user experience, create a copy of the `WikiComponent`. This can be done through,
+Observable operators.
 
-Here's the `WikiSmartComponent`, shown next to the original `WikiComponent`:
+In the following code, `WikiSmartComponent` component is displayed next to the original `WikiComponent`:
 
 <code-tabs>
   <?code-pane "lib/src/wiki/wiki_smart_component.dart" linenums?>
@@ -626,28 +595,27 @@ Here's the `WikiSmartComponent`, shown next to the original `WikiComponent`:
 </code-tabs>
 
 While the templates are virtually identical,
-there's a lot more RxJS in the "smart" version,
-starting with `debounceTime`, `distinctUntilChanged`, and `switchMap` operators,
-imported as [described above](#rxjs-library).
+there are more RxJS such as, `debounceTime`, `distinctUntilChanged`, and `switchMap` operators in the new version.
+These are imported as [described above](#rxjs-library).
 
 <div id="create-stream"></div>
 ### Create a stream of search terms
 
 The `WikiComponent` passes a new search term directly to the `WikipediaService` after every keystroke.
 
-The `WikiSmartComponent` class turns the user's keystrokes into an Observable _stream of search terms_
-with the help of a `Subject`, which you import from RxJS:
+The `WikiSmartComponent` class turns the keystrokes into an Observable _stream of search terms_
+with the help of a `Subject`, which is imported from RxJS:
 
 <?xcode-excerpt "lib/src/wiki/wiki_smart_component.dart (import-subject)"?>
 
-The component creates a `searchTermStream` as a `Subject` of type `string`.
-The `search()` method adds each new search box value to that stream via the subject's `next()` method.
+The component creates a `searchTermStream` as a subject of type `string`.
+The `search()` method adds each new search box value to that stream through the `next()` method of the subject.
 
 <?xcode-excerpt "lib/src/wiki/wiki_smart_component.dart (subject)"?>
 
 ### Listen for search terms
 
-The `WikiSmartComponent` listens to the *stream of search terms* and
+The `WikiSmartComponent` records the *stream of search terms* and
 processes that stream _before_ calling the service.
 
 <?xcode-excerpt "lib/src/wiki/wiki_smart_component.dart (observable-operators)"?>
@@ -666,9 +634,8 @@ The `WikipediaService` returns a separate Observable of string arrays (`Observab
 The user could issue multiple requests before a slow server has had time to reply,
 which means a backlog of response Observables could arrive at the client, at any moment, in any order.
 
-The `switchMap` returns its own Observable that _combines_ all `WikipediaService` response Observables,
-re-arranges them in their original request order,
-and delivers to subscribers only the most recent search results.
+The `switchMap` returns Observable that _combines_ all `WikipediaService` responses. Observables,
+re-arrange them in their original request order, and delivers only the most recent search results to subscribers.
 
 //- Skip Cross-Site Request Forgery section for now.
 //- Drop "in-memory web api" appendix since we refer readers to the tutorial.
